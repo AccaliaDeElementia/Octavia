@@ -25,6 +25,9 @@ class Chain(object):
             history.append(item)
             history = history[-self.__chain_length:]
 
+    def has_data(self):
+        return len(self.__table) != 0
+
     def random_state (self, rand):
         return list(rand.choice(self.__table.keys())) 
 
