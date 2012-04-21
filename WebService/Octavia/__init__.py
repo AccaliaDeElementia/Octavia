@@ -13,7 +13,7 @@ SECRET_KEY = 'CEsufr4CrAqasp4FrUNUTHahUXAn4B+upH5tHaraFRAYaswa2RafruRaz6fAf69e'
 
 MPD_HOST = 'localhost'
 MPD_PORT = 6600
-DEFAULT_PASSWORD = 'foo'
+DEFAULT_PASSWORD = None
 
 APP_NAME = 'Octavia'
 APP_VERSION = '0.0.0Alpha'
@@ -24,34 +24,84 @@ APP_LICENSE_URL ='http://creativecommons.org/licenses/by/3.0/'
 ## END: CONFIGURATION
 
 @decorator
-def jsonify(func, *args, **kwargs):
-    return (json.dumps(func(*args, **kwargs)),200,{'Content-Type':'application/json'})
+def WebMethod (func, *args, **kwargs):
+    g.client = MPDClient()
+    try:
+        try:
+            g.client.connect(app.config['MPD_HOST'], app.config['MPD_PORT'])
+        except:
+            abort(500, 'Connection to MPD failed')
+        passwd = session.get('PASSWORD', app.config['DEFAULT_PASSWORD'])
+        if passwd:
+            g.client.password(passwd)
+        try:
+            result = func(*args, **kwargs)
+            return json.dumps((result),200,{'Content-Type':'application/json'})
+        finally:
+            g.client.disconnect()
+    except CommandError as e:
+        msg = e.message.split('} ', 1)[1]
+        mpd_code = e.message.split('@',1)[0]
+        code = {
+            '[1': 400,
+            '[2': 400,
+            '[3': 401,
+            '[4': 401,
+            '[5': 500,
+            '[50': 404,
+            '[51': 413,
+            '[52': 500,
+            '[53': 500,
+            '[54': 500,
+            '[55': 400,
+            '[56': 409
+        }.get(mpd_code, 500)
+        abort(code, msg)
+    except Exception as e:
+        if not app.config['DEBUG']:
+            abort(500, e.message)
+        else:
+            raise e
+        
+def get_data():
+    data = request.json
+    if not data:
+        data = json.loads(request.form.keys()[0])
+    return data
 
+def get_list_songs(allow_id = True, needed_keys=None):
+    error = lambda: abort(400, 'input must be a list of song objects')
+    attr_error = lambda: abort(400, 'song objects for tbhis method must have'+
+                          ' additional attributes: %s' % ' '.join(needed_keys))
+    is_song = lambda keys: 'file' in keys
+    if allow_id:
+        is_song = lambda keys: 'id' in keys or 'file' in keys
+    data = get_data()
+    if type(data) != list:
+        error()
+    for song in data:
+        if type(song) != dict:
+            error()
+        keys = song.keys()
+        if not is_song(keys):
+            error()
+        if needed_keys:
+            for nkey in needed_keys:
+                if nkey not in keys:
+                    attr_error()
+    return data
+
+
+def filter_song(song):
+    for attr in song.keys():
+        if not attr in ['album', 'artist', 'title', 'track', 'id', 'file', 'time']:
+            del song[attr]
+    return song
+ 
 app = Flask(__name__)
 app.config.from_object (__name__)
 
-@app.before_request
-def connect():
-    g.connected = False
-    g.client = MPDClient()
-    try:
-        g.client.connect(app.config['MPD_HOST'], app.config['MPD_PORT'])
-        g.connected = True
-        passwd = session.get('PASSWORD', app.config['DEFAULT_PASSWORD'])
-        if passwd:
-            try:
-                g.client.password(passwd)
-            except CommandError as e:
-                abort(401, e.message.split('} ',1)[1])
-    except Exception as e:
-        print e
-        pass
-
-@app.teardown_request
-def disconnect(error):
-    try:
-        g.client.disconnect()
-    except:
-        pass
-
-from PlayQueue import *
+import Octavia.Playback
+import Octavia.Library
+import Octavia.Queue
+import Octavia.Status
