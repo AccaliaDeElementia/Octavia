@@ -5,17 +5,8 @@ app = Octavia.app
 from flask import request, session, g, abort
 
 def get_list():
-    return [Octavia.filter_song(song) for song in g.client.playlistinfo()]
-
-def filter_matches(needles, haystack, formatter):
-    results = []
-    matches = lambda a, b: (str(a['id']) == b['id'] if 'id' in a.keys() else 
-                           a['file'] == b['file'])
-    for needle in needles:
-        results += [formatter(needle, straw) for straw in haystack if matches(needle, straw)]
-    if len(results) < 1:
-        abort(404, 'No songs matching criteria found')
-    return results
+    return [Octavia.filter_song(song) for song in
+            g.client.playlistinfo()]
 
 @app.route('/queue/')
 @app.route('/queue/list')
@@ -36,7 +27,7 @@ def queue_clear():
 def queue_delete_songs():
     songs = Octavia.get_list_songs()
     queue = g.client.playlistinfo()
-    ids = filter_matches(songs, queue, lambda x, y: y['id'])
+    ids = Octavia.filter_matches(songs, queue, lambda x, y: y['id'])
     g.client.command_list_ok_begin()
     for id_ in ids:
         g.client.deleteid(id_)
@@ -57,10 +48,13 @@ def queue_append_songs():
 @Octavia.WebMethod
 def queue_replace_songs():
     songs = Octavia.get_list_songs(allow_id=False)
+    playing = g.client.status()['state'] == 'play'
     g.client.command_list_ok_begin()
     g.client.clear()
     for song in songs:
         g.client.add(song['file'])
+    if playing:
+        g.client.play()
     g.client.command_list_end()
     return get_list()
 
@@ -75,7 +69,8 @@ def queue_shuffle():
 def queue_move():
     songs = Octavia.get_list_songs(needed_keys=['index'])
     queue = g.client.playlistinfo()
-    moves = filter_matches(songs, queue, lambda x, y: (y['id'], x['index']))
+    moves = Octavia.filter_matches(songs, queue,
+                        lambda x, y: (y['id'], x['index']))
     g.client.command_list_ok_begin()
     for id_, dest in moves:
         g.client.moveid(id_, dest)
@@ -91,5 +86,23 @@ def queue_save(name):
 @app.route('/queue/load/<name>', methods=['POST'])
 @Octavia.WebMethod
 def queue_load(name):
+    playing = g.client.status()['state'] == 'play'
+    g.client.command_list_ok_begin()
+    g.client.clear()
+    g.client.load(name)
+    if playing:
+        g.client.play()
+    g.client.command_list_end()
+    return get_list()
+
+@app.route('/queue/load/<name>', methods=['PUT'])
+@Octavia.WebMethod
+def queue_load(name):
     g.client.load(name)
     return get_list()
+
+@app.route('/queue/current')
+@app.route('/queue/now_playing')
+@Octavia.WebMethod
+def queue_now_playing():
+    return Octavia.filter_song(g.client.currentsong())

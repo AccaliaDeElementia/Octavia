@@ -2,9 +2,10 @@
 
 from decorator import decorator
 import json
+import re
 
 from mpd import MPDClient, CommandError
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from flask import Flask, request, session, g, abort
 
 
 ## BEGIN: CONFIGURATION
@@ -91,12 +92,41 @@ def get_list_songs(allow_id = True, needed_keys=None):
                     attr_error()
     return data
 
+def sort_list(items, get_key):
+    tokenize = re.compile(r'(\d+)|(\D+)').findall
+    def sort_key(item):
+        return tuple( int(num) if num else alpha for num, alpha in tokenize(get_key(item)))
+    return list(sorted(items, key=sort_key))
 
 def filter_song(song):
+    fsong = {
+        'album': '',
+        'artist': '',
+        'title': '', 
+        'track': '', 
+        'id': -1, 
+        'file': '', 
+        'time': -1
+    }
+    keys = fsong.keys()
     for attr in song.keys():
-        if not attr in ['album', 'artist', 'title', 'track', 'id', 'file', 'time']:
-            del song[attr]
-    return song
+        if attr in keys:
+            if type(fsong[attr]) == int:
+                fsong[attr] = int(song[attr])
+            else:
+                fsong[attr] = song[attr]
+    return fsong
+
+def filter_matches(needles, haystack, formatter): 
+    results = []
+    matches = lambda a, b: (str(a['id']) == b['id'] if 'id' in a.keys()
+                            else a['file'] == b['file'])
+    for needle in needles:
+        results += [formatter(needle, straw) for straw in haystack if
+                    matches(needle, straw)]
+    if len(results) < 1:
+        abort(404, 'No songs matching criteria found')
+    return results 
  
 app = Flask(__name__)
 app.config.from_object (__name__)
@@ -105,3 +135,4 @@ import Octavia.Playback
 import Octavia.Library
 import Octavia.Queue
 import Octavia.Status
+import Octavia.Playlist
