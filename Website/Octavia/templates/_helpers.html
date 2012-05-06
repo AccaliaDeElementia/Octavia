@@ -1,0 +1,28 @@
+{% macro button(icon, title, registerto='', registerfn='', activation='') -%}
+    <div class="button ui-corner-all ui-state-default" title="{{ title }}" {% if activation %}onclick="{{ activation|safe }}"{% endif %}>
+        <span class="ui-icon {{ icon }}">&nbsp;</span>
+    </div>
+    {% if registerto %}
+    <script type="text/javascript">
+        $(function(){
+            Octavia.{{ registerto }}.subscribe(
+                {{ registerfn|safe }}
+            )
+        })
+    </script>
+    {% endif %}
+{%- endmacro %}
+{% macro span(id, registerto='', valuefn='') -%}
+    <span id="{{id}}">&nbsp;</span>
+    {% if registerto %}
+    <script type="text/javascript">
+        $(function(){
+            Octavia.{{ registerto }}.subscribe(
+                function(event, data){
+                    $('#{{id}}').html({{ valuefn|safe }});
+                }
+            )
+        })
+    </script>
+    {% endif %}
+{%- endmacro %}

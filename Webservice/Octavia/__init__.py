@@ -4,7 +4,7 @@ from decorator import decorator
 import json
 import re
 
-from mpd import MPDClient, CommandError
+from mpd import MPDClient, CommandError, ConnectionError
 from flask import Flask, request, session, g, abort
 
 
@@ -58,6 +58,8 @@ def WebMethod (func, *args, **kwargs):
             '[56': 409
         }.get(mpd_code, 500)
         abort(code, msg)
+    except ConnectionError:
+        pass
     except Exception as e:
         if not app.config['DEBUG']:
             abort(500, e.message)
@@ -130,6 +132,14 @@ def filter_matches(needles, haystack, formatter):
  
 app = Flask(__name__)
 app.config.from_object (__name__)
+
+@app.after_request
+def CORS_adjust(resp):
+    print ('after')
+    resp.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
 
 import Octavia.Playback
 import Octavia.Library

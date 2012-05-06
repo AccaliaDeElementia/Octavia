@@ -7,21 +7,23 @@ from datetime import datetime
 from flask import request, session, g
 
 def status():
-    nan = float('nan')
+    def safeFloat(val, default=0.):
+        value = float(val)
+        return value if value == value else default
     status = g.client.status()
     return {
         'playback': status.get('state', 'unknown'),
         'bitrate': int(status.get('bitrate', 0)),
         'audio': status.get('audio'),
-        'volume': float(status.get('volume', nan)),
+        'volume': safeFloat(status.get('volume', 0)),
         'repeat': True if status.get('repeat', '0') == '1' else False,
         'consume': True if status.get('consume', '0') == '1' else False,
         'random': True if status.get('random', '0') == '1' else False,
         'single': True if status.get('single', '0') == '1' else False,
-        'crossfade': float(status.get('xfade', 0)),
+        'crossfade': safeFloat(status.get('xfade', 0)),
         'mixramp': {
-            'db': float(status.get('mixrampdb',0)),
-            'delay': float(status.get('mixrampdelay', 0)),
+            'db': safeFloat(status.get('mixrampdb',0)),
+            'delay': safeFloat(status.get('mixrampdelay', 0)),
         }
     }
 @app.route('/playback')
@@ -41,7 +43,7 @@ def set_status():
         {
             'play': g.client.play,
             'pause': g.client.pause,
-            'stop': g.client.pause,
+            'stop': g.client.stop,
             'toggle': lambda: g.client.play() if before.get('state', 'play') != 'play' else g.client.pause()
         }.get(value, lambda: None)()
     for func in ['repeat', 'consume', 'random', 'single']:

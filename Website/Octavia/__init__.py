@@ -15,6 +15,11 @@ APP_LICENSE_URL = 'http://creativecommons.org/licenses/by/3.0'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/status')
+def status():
+    return render_template('status.html')

@@ -101,8 +101,51 @@ def queue_load(name):
     g.client.load(name)
     return get_list()
 
+def now_playing():
+    return Octavia.filter_song(g.client.currentsong())
+
+@app.route('/queue/next', methods=['POST'])
+@Octavia.WebMethod
+def next():
+    g.client.next()
+    return now_playing()
+
+@app.route('/queue/prev', methods=['POST'])
+@app.route('/queue/previous', methods=['POST'])
+@Octavia.WebMethod
+def prev():
+    g.client.previous()
+    return now_playing()
+
+def goto(id_):
+    g.client.playid(id_)
+    return now_playing()
+@app.route('/queue/go/<int:id_>', methods=['POST'])
+@Octavia.WebMethod
+def go(id_):
+    return goto(id_)
+
+@app.route('/queue/first', methods=['POST'])
+@Octavia.WebMethod
+def first():
+    queue = get_list()
+    if len(queue):
+        id_ = queue[0]['id']
+        return goto(id_)
+    return now_playing()
+
+@app.route('/queue/last', methods=['POST'])
+@Octavia.WebMethod
+def last():
+    queue = get_list()
+    if len(queue):
+        id_ = queue[-1]['id']
+        return goto(id_)
+    return now_playing()
+
 @app.route('/queue/current')
 @app.route('/queue/now_playing')
 @Octavia.WebMethod
 def queue_now_playing():
-    return Octavia.filter_song(g.client.currentsong())
+    return now_playing()
+
