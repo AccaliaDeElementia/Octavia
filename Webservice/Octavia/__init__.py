@@ -135,7 +135,9 @@ app.config.from_object (__name__)
 
 @app.after_request
 def CORS_adjust(resp):
-    print ('after')
+    # Allow Cross Site Scripting requests using JavaScript
+    # TODO: only allow methods that the endpoint is willing to accept anyway.
+    resp.headers['Access-Control-Allow-Methods'] = 'OPTIONS, GET, POST, PUT, DELETE'
     resp.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
     resp.headers['Access-Control-Allow-Credentials'] = 'true'
     resp.headers['Content-Type'] = 'application/json'

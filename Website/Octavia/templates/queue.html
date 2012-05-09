@@ -1,154 +1,45 @@
-{% extends 'layout.html' %}
-{% macro button(icon, title, registerto='', registerfn='', activation='') -%}
-    <div class="button ui-corner-all ui-state-default" title="{{ title }}" {% if activation %}onclick="{{ activation|safe }}"{% endif %}>
-        <span class="ui-icon {{ icon }}">&nbsp;</span>
-    </div>
-    {% if registerto %}
-    <script type="text/javascript">
-        $(function(){
-            Octavia.{{ registerto }}.subscribe(
-                {{ registerfn|safe }}
-            )
-        })
-    </script>
-    {% endif %}
-{%- endmacro %}
-{% macro span(id, registerto='', valuefn='') -%}
-    <span id="{{id}}">&nbsp;</span>
-    {% if registerto %}
-    <script type="text/javascript">
-        $(function(){
-            Octavia.{{ registerto }}.subscribe(
-                function(event, data){
-                    $('#{{id}}').html({{ valuefn|safe }});
-                }
-            )
-        })
-    </script>
-    {% endif %}{%- endmacro %}
+{% from '_helpers.html' import button %}
 {% block body %}
-<div class="status">
-    <div>
-        {{ span ('title', 'queue.status', 'data.title') }} 
-        -
-        {{ span ('artist', 'queue.status', 'data.artist') }}
+<div class="playlist">
+    <div class="Octavia-song ui-corner-all" id="SONG_BASE">
+        {{ button (
+            'ui-icon-play', 'Play',
+            activation='(function(element){
+                    var elem =$(element).closest(\'div.Octavia-song\');
+                    var id = elem.data(\'SONG\').id;
+                    Octavia.queue.status.go(elem, id);
+                })(this)'
+        ) }}
+        {{ button (
+            'ui-icon-trash', 'Remove',
+            activation='(function(element){
+                    var elem =$(element).closest(\'div.Octavia-song\');
+                    var id = elem.data(\'SONG\').id;
+                    Octavia.queue.list.remove(elem, id);
+                })(this)'
+        ) }}
+        <span class="title" />
     </div>
-    <div>
-        {{ span ('album', 'queue.status', 'data.album') }}
-    </div>
-    {{ button('ui-icon-seek-first', 'First', activation='Octavia.queue.status.first()' ) }}
-    {{ button('ui-icon-seek-prev', 'Previous', activation='Octavia.queue.status.prev()' ) }}
-    {{ button('ui-icon-stop', 'Stop', activation='Octavia.playback.stop(this)') }}
-    {{ button('ui-icon-play', 'Play', 'playback', 
-        'function(event, data) { 
-            elem = $("div.status .ui-icon-play").parent(); 
-            if (data.playback === "play"){
-                elem.hide();
-            } else {
-                elem.show()
-            }
-        }',
-        'Octavia.playback.play(this)') }}
-    {{ button('ui-icon-pause', 'Pause', 'playback', 
-        'function(event, data) { 
-            elem = $("div.status .ui-icon-pause").parent(); 
-            if (data.playback !== "play"){
-                elem.hide();
-            } else {
-                elem.show()
-            
-            }
-        }',
-        'Octavia.playback.pause(this)') }}
-    {{ button('ui-icon-seek-next', 'Next', activation='Octavia.queue.status.next()' ) }}
-    {{ button('ui-icon-seek-end', 'Last', activation='Octavia.queue.status.last()' ) }}
-    <div class="button">&nbsp;</div>
-    {{ button('ui-icon-arrowreturn-1-n', 'Single', 
-        'playback',
-        'function(event, data) {
-            elem = $("div .ui-icon-arrowreturn-1-n").parent();
-            if (data.single){
-                elem.addClass("ui-state-active").removeClass("ui-state-default");
-            } else {
-                elem.addClass("ui-state-default").removeClass("ui-state-active");
-            }
-        }',
-        'Octavia.playback.single(this, !$(this).hasClass(\'ui-state-active\'))' ) }}
-    {{ button('ui-icon-shuffle', 'Shuffle', 
-        'playback',
-        'function(event, data) {
-            elem = $("div .ui-icon-shuffle").parent();
-            if (data.random){
-                elem.addClass("ui-state-active").removeClass("ui-state-default");
-            } else {
-                elem.addClass("ui-state-default").removeClass("ui-state-active");
-            }
-        }',
-        'Octavia.playback.shuffle(this, !$(this).hasClass(\'ui-state-active\'))' ) }}
-    {{ button('ui-icon-refresh', 'Single', 
-        'playback',
-        'function(event, data) {
-            elem = $("div .ui-icon-refresh").parent();
-            if (data.repeat){
-                elem.addClass("ui-state-active").removeClass("ui-state-default");
-            } else {
-                elem.addClass("ui-state-default").removeClass("ui-state-active");
-            }
-        }',
-        'Octavia.playback.repeat(this, !$(this).hasClass(\'ui-state-active\'))' ) }}
-    {{ button('ui-icon-trash', 'Consume', 
-        'playback',
-        'function(event, data) {
-            elem = $("div .ui-icon-trash").parent();
-            if (data.consume){
-                elem.addClass("ui-state-active").removeClass("ui-state-default");
-            } else {
-                elem.addClass("ui-state-default").removeClass("ui-state-active");
-            }
-        }',
-        'Octavia.playback.consume(this, !$(this).hasClass(\'ui-state-active\'))' ) }}
-    <script type="text/javascript">
-        $(function(){
-            function update(){
-                Octavia.playback.update();
-                Octavia.queue.status.update();
-            }
-            update()
-            setInterval(update, 10000);
-        });
-    </script>
 </div>
-<div>
-    <div class="playlist">
-        <div class="Octavia-song" id="SONG_BASE">
-            {{ button (
-                'ui-icon-play', 'Play',
-                activation='(function(element){
-                        var elem =$(element).closest(\'div.Octavia-song\');
-                        var id = elem.data(\'SONG\').id;
-                        Octavia.queue.status.go(elem, id);
-                    })(this)'
-            ) }}
-            <span class="title" />
-        </div>
-    </div>
-    <script type="text/javascript">
-        $(function(){
-            base = $('div.playlist div#SONG_BASE').detach();
-            Octavia.queue.list.subscribe(function (){
-                var container = $('.playlist').empty();
-                data =  [].slice.call(arguments)
-                for (var i = 1; i< data.length; i+=1) {
-                    var item = data[i]
-                    var row = base.clone(true);
-                    row.data('SONG', item);
-                    $('span.title', row).html(item.title);
-                    row.attr('id', item.id);
-                    container.append(row);
-                }
-            });
-            Octavia.queue.list.update();
+<script type="text/javascript">
+    $(function(){
+        base = $('div.playlist div#SONG_BASE').detach();
+        Octavia.queue.list.subscribe(function (event, data){
+            var container = $('.playlist').empty();
+            for (var i = 0; i < data.length; i+=1) {
+                var item = data[i]
+                var row = base.clone(true);
+                row.data('SONG', item);
+                $('span.title', row).html(item.title);
+                row.attr('id', item.id);
+                container.append(row);
+            }
         });
-    </script>
-</div>
+        Octavia.queue.status.subscribe(function(event, data){
+            $('div.playlist div.ui-state-active').removeClass('ui-state-active');
+            $('div.playlist div#'+data.id).addClass('ui-state-active');
+        });
+        Octavia.queue.list.update();
+    });
+</script>
 {% endblock %}

@@ -20,6 +20,6 @@ app.config.from_object(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/status')
-def status():
-    return render_template('status.html')
+@app.route('/<string:name>')
+def status(name):
+    return render_template(name + '.html')

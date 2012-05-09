@@ -14,11 +14,11 @@
         }
         return that;
     },
-    runcomplete =function(that, element, name, request){
+    runcomplete =function(that, element, name, request, extraData){
         var elem = norm(element);
         request.complete(function(request){
             var data = JSON.parse(request.responseText);
-            elem.trigger(name, data);
+            elem.trigger(name, [data, extraData]);
         });
         return that;
     },
@@ -117,7 +117,37 @@
                     return runcomplete(this, element, 'queue_list',
                         $.get(baseUrl+'/queue/')
                     );
+                },
+                "remove": function(element, id) {
+                    return runcomplete (this, element, 'queue_list',
+                        $.post(baseUrl+'/queue/remove',JSON.stringify([{"id":id}]))
+                    );
+                },
+                "add": function(element, path) {
+                    return runcomplete (this, element, 'queue_list',
+                        $.ajax({
+                            "url": baseUrl+'/queue/add', 
+                            "data": JSON.stringify([{'file':path}]),
+                            "type": 'PUT'
+                            })
+                    );
+                },
+                "replace": function(element, path) {
+                    return runcomplete (this, element, 'queue_list',
+                        $.post(baseUrl+'/queue/add', JSON.stringify([{'file':path}]))
+                    );
                 }
+            }
+        },
+        "library": {
+            "subscribe": function (func){
+                return subscribe(this, func, 'library_update');
+            },
+            "update": function(element, path){
+                return runcomplete(this, element, 'library_update',
+                    $.get(baseUrl+'/library/list/' + path),
+                    path
+                );
             }
         }
     };
