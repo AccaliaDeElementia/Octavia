@@ -61,4 +61,5 @@ def allow_CORS():
     response.headers['Access-Control-Allow-Credentials'] = 'true'
     response.headers['Content-Type'] = 'application/json'
 
+import Octavia.Discovery
 
