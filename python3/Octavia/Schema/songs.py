@@ -5,7 +5,7 @@ song = {
     'type': 'object',
     'properties': {
         'album': { 
-            'descripton': 'Song Album Name'
+            'descripton': 'Song Album Name',
             'type': 'string',
             'blank': True,
         },
@@ -43,7 +43,7 @@ song = {
         }
     }
 }
-file_song = {
+filesong = {
     'title': 'Request Song by Path',
     'description': 'A Song Identified by Path',
     'type': 'object',
@@ -55,7 +55,7 @@ file_song = {
         },
     }
 }
-id_song = {
+idsong = {
     'title': 'Request Song by Id',
     'description': 'A Song Identified by Playlist Id',
     'type': 'object',
@@ -68,7 +68,7 @@ id_song = {
     }
 }
 
-song_list = {
+songlist = {
     'title': 'Song List',
     'description': 'List of MPD Songs',
     'type': 'array',

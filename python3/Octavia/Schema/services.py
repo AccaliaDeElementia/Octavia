@@ -61,9 +61,9 @@ query_param = {
     'type': 'object',
     'parameters': {
         'name': { 'type': 'string' },
-        'style': { 'enum' : ['header'] },
-        'value_type': { 'enum': ['string', 'int', 'number', 'boolean'] },
-        'value_description': { 'type': 'string' }
+        'style': { 'enum' : ['query'] },
+        'valuetype': { 'enum': ['string', 'int', 'number', 'boolean'] },
+        'description': { 'type': 'string' }
     }
 }
 
@@ -91,7 +91,7 @@ web_request = {
         'parameters': {
             'description': 'Request Parameters',
             'type': 'array',
-            'items': [ header, query_param ]
+            'items': { 'type': [ header, query_param ]}
         },
         'content': {
             'description': 'Request Content',
@@ -107,10 +107,13 @@ web_response = {
     'properties': {
         'status': {
             'description': 'HTTP Response Code as per RFC 2616 sec. 9',
-            'enum': [200, 201, 202, 203, 204, 205, 206, 300, 301, 302, 303, 
-                     304, 305, 307, 400, 401, 403, 405, 406, 407, 408, 409,
-                     410, 411, 412, 413, 414, 415, 416, 417, 500, 501, 502,
-                     503, 504, 505, '*', '2xx', '3xx', '4xx', '5xx']
+            'type': 'array',
+            'items': {
+                'enum': [200, 201, 202, 203, 204, 205, 206, 300, 301, 302, 303, 
+                         304, 305, 307, 400, 401, 403, 405, 406, 407, 408, 409,
+                         410, 411, 412, 413, 414, 415, 416, 417, 500, 501, 502,
+                         503, 504, 505, '*', '2xx', '3xx', '4xx', '5xx']
+            }
         },
         'description': {
             'type': 'string',
@@ -142,14 +145,17 @@ web_method = {
             'type': 'string',
             'required': False
         },
-        'action': {
+        'actions': {
             'description': ('HTTP Methods acted on by Method, ' +
                            'as per RFC 2616 sec. 9'),
-            'type': 'string',
-            'enum': ['OPTIONS', 'HEAD', 'GET', 'PUT', 'POST', 'DELETE']
+            'type': 'array',
+            'items': {
+                'type': 'string',
+                'enum': ['OPTIONS', 'HEAD', 'GET', 'PUT', 'POST', 'DELETE']
+            }
         },
         'request': { 'type': web_request },
-        'response': { 'type': 'array', 'items': web_response }
+        'response': { 'type': 'array', 'items': web_response, 'minItems': 1 }
     }
 }
 
@@ -176,7 +182,7 @@ services = {
     'description': 'Services Offered by Application',
     'type': 'object',
     'properties': {
-        'baseUri': {
+        'baseuri': {
             'description': 'Base URI for all Services',
             'type': 'string',
             'format': 'uri',
