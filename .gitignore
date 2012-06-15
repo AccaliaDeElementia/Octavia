@@ -3,7 +3,7 @@
 *.pyc
 *~
 *.swp
-Octavia/bin
-Octavia/lib
-Octavia/build
-Octavia/include
+bin
+lib
+build
+include
