@@ -12,5 +12,5 @@ pip install bottle-websocket
 touch build/bottle-websocket/README.md
 pip install bottle-websocket
 
-
+pip install decorator
 pip install python-mpd2
