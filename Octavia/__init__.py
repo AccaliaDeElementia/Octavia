@@ -2,6 +2,7 @@
 import logging
 logging.disable(logging.DEBUG)
 
+
 import json
 import threading
 
@@ -16,10 +17,9 @@ from wsgi_xmlrpc import WSGIXMLRPCApplication as XmlRpcApplication
 
 from mpd import MPDClient
 
+import Documentator
 
 mpc = threading.local()
-
-
 
 class Octavia (object):
     def __init__ (self):
@@ -44,9 +44,10 @@ class Octavia (object):
                     mpc.client.disconnect()
                 except: pass
         f2 = decorator(wrapper, func)
+        Documentator.registerMethod(f2)
         self.jsonrpc.methods[func.__name__] = f2
         self.xmlrpcapp.dispatcher.register_function(f2)
-        return decorator(wrapper)
+        return func 
 
     def websocket(self, ws):
         while True:
@@ -64,8 +65,8 @@ def filter_song(song):
     return { key: song.get(key, '') for key in keys }
 
 @octavia.register
-def hello():
-    return 'hello world'
+def help(method=None):
+    return Documentator.help(method)
  
 import Queue
 
