@@ -4,10 +4,7 @@ from Octavia import octavia, filter_song, mpc, Documentator
 @octavia.register
 def queueList():
     '''Return a list of songs in the play queue.'''
-    if sid is None:
-        songs = mpc.client.playlistinfo()
-    else:
-        songs = mpc.client.playlistinfo(sid)
+    songs = mpc.client.playlistinfo()
     return [filter_song(song) for song in songs]
 
 @octavia.register
@@ -18,36 +15,44 @@ def queueCurrent():
 @octavia.register
 def queueNext():
     '''Advance the play queue by one song.'''
-    return mpc.client.next()
+    mpc.client.next()
+    return queueCurrent()
 
 @octavia.register
 def queuePrev():
     '''Rewind the play queue by one song.'''
-    return mpc.client.previous()
+    mpc.client.previous()
+    return queueCurrent()
 
 @octavia.register
 def queuePlay(position=None):
     '''Resume playback of play queue, optionally at [position].'''
-    if sid is None:
-        return mpc.client.play()
-    return mpd.client.play(position)
+    if position is None:
+        mpc.client.play()
+    else:
+        mpd.client.play(position)
+    return queueCurrent()
 
 @octavia.register
 def queuePause():
     '''Pause playback of play queue.'''
-    return mpc.client.pause(1)
+    mpc.client.pause(1)
+    return queueCurrent()
 
 @octavia.register
 def queueToggle ():
     '''Toggle play/pause of play queue.'''
     if mpc.client.status().get('state','') == 'play':
-        return mpc.client.pause(1)
-    return mpc.client.play()
+        mpc.client.pause(1)
+    else:
+        mpc.client.play()
+    return queueCurrent()
 
 @octavia.register
 def queueStop():
     '''Stop playback of play queue.'''
-    return mpc.client.stop()
+    mpc.client.stop()
+    return queueCurrent()
 
 @octavia.register
 def queueClear():
