@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from Octavia import octavia, filter_song, mpc, Documentator
+from Octavia import octavia, filter_song, mpc
 
 @octavia.register
 def queueList():

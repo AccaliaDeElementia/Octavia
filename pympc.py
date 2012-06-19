@@ -13,7 +13,8 @@ def doXmlRpc(server, port, command, params):
 def doJsonRpc(server, port, command, params):
     method = {'jsonrpc': '2.0', 'method': command, 'params':params, 'id':1}
     req = Request('http://%s:%s/json'%(server,port),json.dumps(method),{'Content-Type': 'application/json'})
-    return json.loads(urlopen(req).read())
+    resp = json.loads(urlopen(req).read())
+    return resp.get('result', resp)
 
 parser = argparse.ArgumentParser()
 

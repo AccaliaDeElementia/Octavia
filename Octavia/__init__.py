@@ -2,7 +2,6 @@
 import logging
 logging.disable(logging.DEBUG)
 
-
 import json
 import threading
 
@@ -69,6 +68,7 @@ def help(method=None):
     return Documentator.help(method)
  
 import Queue
+import Playlist
 
 if __name__ == '__main__':
     run(octavia.app, host='localhost', port=8080, server=GeventWebSocketServer)
