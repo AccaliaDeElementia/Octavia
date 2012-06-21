@@ -110,3 +110,75 @@ def queueMove(fromid, position):
     '''Move song [songid] to [position] and return new play queue.'''
     mpc.client.moveid(fromid, position)
     return queueList()
+
+@octavia.register
+def queueStatus():
+    '''Return the genral playback status.'''
+    s = mpc.client.status()
+    sfloat = lambda n: float(s.get(n, 'nan'))
+    sint = lambda n: int(s.get(n,-1))
+    sbool = lambda n: True if s.get(n) == '1' else False
+    sstr = lambda n: s.get(n, 'unknown')
+    parts = [
+        ('state', sstr), ('bitrate', sint), ('audio', sstr), 
+        ('volume', sint), ('repeat', sbool), ('consume', sbool),
+        ('random', sbool), ('single', sbool),  ('mixrampdelay', sfloat),
+        ('playlistlength', sint), ('mixrampdb', sfloat), ('xfade', sfloat),
+    ]
+    return { n: v(n) for n,v in parts}
+
+@octavia.register
+def queueVolume(volume=None):
+    '''Set the playback [volume], return changed value.'''
+    if volume:
+        mpc.client.setvol(volume)
+    return queueStatus()['volume']
+
+@octavia.register
+def queueConsume(mode=None):
+    '''Set the play queue consume [mode], return updated value.'''
+    if mode:
+        mpc.client.consume(mode)
+    return queueStatus()['consume']
+
+@octavia.register
+def queueRandom(mode=None):
+    '''Set the play queue randomize order [mode], return updated value.'''
+    if mode:
+        mpc.client.random(mode)
+    return queueStatus()['random']
+
+@octavia.register
+def queueRepeat(mode=None):
+    '''Set the play queue repeat [mode], return updated value.'''
+    if mode:
+        mpc.client.repeat(mode)
+    return queueStatus()['repeat']
+
+@octavia.register
+def queueSingle(mode=None):
+    '''Set the play queue single song [mode], return updated value.'''
+    if mode:
+        mpc.client.single(mode)
+    return queueStatus()['single']
+
+@octavia.register
+def queueCrossfade(length=None):
+    '''Set the playback crossfade [length], return the updated value.'''
+    if length:
+        mpc.client.crossfade(length)
+    return queueStatus()['xfade']
+
+@octavia.register
+def queueMixrampdB(decibels=None):
+    '''Set the playback mixramp [decibels] level, return the updated value.'''
+    if decibels:
+        mpc.client.mixrampdb(decibels)
+    return queueStatus()['mixrampdb']
+
+@octavia.register
+def queueMixrampDelay(delay=None):
+    '''Set the playback mixramp [delay], return the updated value.'''
+    if delay:
+        mpc.client.mixrampdelay(delay)
+    return queueStatus()['mixrampdelay']

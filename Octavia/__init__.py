@@ -61,7 +61,7 @@ octavia = Octavia()
 
 def filter_song(song):
     keys = ['album', 'artist', 'title', 'track', 'id', 'file', 'time', 'disc']
-    return { key: song.get(key, '') for key in keys }
+    return { key: song.get(key, None) for key in keys }
 
 @octavia.register
 def help(method=None):
@@ -69,6 +69,7 @@ def help(method=None):
  
 import Queue
 import Playlist
+import Library
 
 if __name__ == '__main__':
     run(octavia.app, host='localhost', port=8080, server=GeventWebSocketServer)

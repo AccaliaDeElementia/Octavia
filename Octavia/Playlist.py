@@ -18,6 +18,13 @@ def playlistAdd(name, path):
     return playlistInfo(name)
 
 @octavia.register
+def playlistReplace(name, path):
+    '''replace contents of stored playlist [name] with [path] and return updated playlist.'''
+    playlistClear(name)
+    mpc.client.playlistadd(name, path)
+    return playlistInfo(name)
+
+@octavia.register
 def playlistRemove(name, songid):
     '''Remove [songid] from stored playlist [name] and return updated playlist.'''
     mpc.client.playlistdelete(name, songid)
