@@ -15,3 +15,32 @@ def libraryList(directory='/'):
             r.append(filter_song(item))
     return r
 
+@octavia.register
+def libraryListAll():
+    '''Return a list of all songs in the music library.'''
+    return [filter_song(item) for item in mpc.client.listallinfo()]
+
+@octavia.register
+def libraryStats():
+    '''Return basic statistics about the music library.'''
+    return {x: int(y) for x,y in mpc.client.stats().items()}
+    
+@octavia.register
+def libraryFind(type_, needle):
+    '''Return a list of songs where [needle] exactly matches metadata [type_].'''
+    return [filter_song(item) for item in mpc.client.find(type_, needle)]
+
+@octavia.register
+def librarySearch(type_, needle):
+    '''Return a list of songs where metadata [type_] contains [needle].'''
+    return [filter_song(item) for item in mpc.client.search(type_, needle)]
+
+@octavia.register
+def libraryUpdate(path='/'): 
+    '''Look for changes in music library, starting at [path].'''
+    return mpc.client.update()
+
+@ocatavia.register
+def libraryRescan(path='/'):
+    '''Rescan music library, starting at [path].'''
+    return mpc.client.rescan(path)
