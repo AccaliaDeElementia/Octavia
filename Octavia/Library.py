@@ -40,7 +40,7 @@ def libraryUpdate(path='/'):
     '''Look for changes in music library, starting at [path].'''
     return mpc.client.update()
 
-@ocatavia.register
+@octavia.register
 def libraryRescan(path='/'):
     '''Rescan music library, starting at [path].'''
     return mpc.client.rescan(path)

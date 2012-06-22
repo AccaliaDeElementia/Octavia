@@ -30,7 +30,7 @@ def queuePlay(position=None):
     if position is None:
         mpc.client.play()
     else:
-        mpd.client.play(position)
+        mpc.client.play(position)
     return queueCurrent()
 
 @octavia.register

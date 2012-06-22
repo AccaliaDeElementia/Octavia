@@ -60,8 +60,9 @@ class Octavia (object):
 octavia = Octavia()
 
 def filter_song(song):
+    tr = lambda x: int(x) if x is not None and x.isdigit() else x
     keys = ['album', 'artist', 'title', 'track', 'id', 'file', 'time', 'disc']
-    return { key: song.get(key, None) for key in keys }
+    return { key: tr(song.get(key, None)) for key in keys }
 
 @octavia.register
 def help(method=None):
