@@ -69,10 +69,14 @@ def queueRandomize():
 @octavia.register
 def queueAdd (path, position=None):
     '''Add [path] to play queue, optionally starting at [position], and return new play queue.'''
-    if position is None:
-        mpc.client.addid(path)
+    adder = (lambda x: mpc.client.add(x)
+             if position is None else
+             lambda x: mpc.client.add(x, position))
+    if hasattr(path, '__iter__'):
+        for x in path:
+            adder(x)
     else:
-        mpc.client.addid(path, position)
+        adder(path)
     return queueList()
 
 @octavia.register
@@ -80,7 +84,7 @@ def queueReplace (path):
     '''Replace contents of play queue with [path] and return new play queue.'''
     playing = mpc.client.status().get('state','') == 'play'
     mpc.client.clear()
-    mpc.client.addid(path)
+    queueAdd(path)
     if playing:
         mpc.client.play()
     return queueList()
